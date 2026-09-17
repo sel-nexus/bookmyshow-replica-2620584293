@@ -1,0 +1,70 @@
+:root {
+  --background: #f7f5f2;
+  --surface: #ffffff;
+  --surface-raised: #ffffff;
+  --foreground: #161313;
+  --foreground-muted: #625c59;
+  --border: #d8d0cb;
+  --ring: #b50920;
+  --primary-50: #fff0f2;
+  --primary-100: #ffdce1;
+  --primary-500: #c70b26;
+  --primary-700: #8e0619;
+  --primary-950: #3a0109;
+  --secondary-50: #fff7ef;
+  --secondary-500: #d85b1b;
+  --secondary-950: #4b1904;
+  --neutral-50: #f7f5f2;
+  --neutral-500: #766e69;
+  --neutral-950: #161313;
+  --success: #17683b;
+  --warning: #9c5400;
+  --error: #b50920;
+  --info: #235a93;
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
+  --space-12: 3rem;
+  --radius-card: 1.25rem;
+  --radius-control: 0.75rem;
+  --shadow-panel: 0 20px 60px rgba(49, 17, 20, 0.12), 0 2px 8px rgba(49, 17, 20, 0.08);
+  --font-display: Georgia, 'Times New Roman', serif;
+  --font-text: 'Segoe UI', Arial, sans-serif;
+  --motion: 220ms ease-out;
+}
+
+* { box-sizing: border-box; }
+html, body { min-height: 100%; }
+body { margin: 0; background: var(--background); color: var(--foreground); font-family: var(--font-text); }
+button, input { font: inherit; }
+button { cursor: pointer; }
+
+.auth-shell { min-height: 100vh; display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(20rem, 0.8fr); }
+.auth-panel { display: flex; flex-direction: column; justify-content: center; max-width: 38rem; padding: clamp(2rem, 7vw, 7rem); }
+.auth-aside { background: var(--primary-950); color: #fff7f4; padding: clamp(2rem, 6vw, 6rem); display: flex; flex-direction: column; justify-content: flex-end; position: relative; overflow: hidden; }
+.auth-aside::before { content: ''; position: absolute; width: 20rem; height: 20rem; border-radius: 50%; background: var(--primary-500); opacity: .45; right: -7rem; top: -5rem; }
+.aside-mark, .eyebrow { font-size: .72rem; font-weight: 700; letter-spacing: .14em; }
+.eyebrow { color: var(--primary-700); margin: 0 0 var(--space-4); }
+.aside-mark { position: relative; margin: 0 0 auto; color: #ffdce1; }
+h1, h2 { font-family: var(--font-display); letter-spacing: -.045em; }
+h1 { font-size: clamp(2.6rem, 5vw, 4.6rem); line-height: .98; margin: 0; max-width: 12ch; }
+h2 { position: relative; font-size: clamp(2.1rem, 4vw, 3.7rem); line-height: 1; margin: var(--space-8) 0 var(--space-4); max-width: 8ch; }
+.auth-intro, .auth-aside p:not(.aside-mark) { font-size: 1rem; line-height: 1.6; max-width: 34rem; }
+.auth-intro { color: var(--foreground-muted); margin: var(--space-6) 0 var(--space-8); }
+.auth-aside p:not(.aside-mark) { position: relative; color: #ffdce1; margin: 0; max-width: 28rem; }
+form { display: grid; gap: var(--space-3); }
+label { font-size: .9rem; font-weight: 700; }
+input { border: 1px solid var(--border); border-radius: var(--radius-control); background: var(--surface); color: var(--foreground); padding: .92rem 1rem; transition: border-color var(--motion), box-shadow var(--motion); }
+input:focus-visible { outline: 0; border-color: var(--ring); box-shadow: 0 0 0 4px rgba(181, 9, 32, .16); }
+button { border: 0; border-radius: 999px; background: var(--primary-500); box-shadow: 0 9px 20px rgba(142, 6, 25, .22); color: white; font-weight: 700; margin-top: var(--space-2); padding: .95rem 1.25rem; transition: transform var(--motion), box-shadow var(--motion), background var(--motion); }
+button:hover:not(:disabled) { background: var(--primary-700); box-shadow: 0 13px 25px rgba(142, 6, 25, .3); transform: translateY(-2px); }
+button:focus-visible { outline: 3px solid var(--ring); outline-offset: 3px; }
+button:disabled { cursor: not-allowed; opacity: .6; }
+.form-note, .mobile-summary { color: var(--foreground-muted); font-size: .9rem; line-height: 1.5; margin: var(--space-2) 0 0; }
+.form-error { color: var(--error); font-size: .9rem; font-weight: 650; margin: 0; }
+
+@media (max-width: 760px) { .auth-shell { grid-template-columns: 1fr; } .auth-panel { min-height: 72vh; padding: var(--space-12) var(--space-6); } .auth-aside { min-height: 18rem; padding: var(--space-8) var(--space-6); } .aside-mark { margin-bottom: var(--space-8); } }
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { scroll-behavior: auto; transition-duration: 0ms !important; animation-duration: 0ms !important; } }
