@@ -20,6 +20,11 @@ export function unauthenticated(): NextResponse {
   return NextResponse.json({ error: { code: 'UNAUTHENTICATED' }, correlationId: correlationId() }, { status: 401 });
 }
 
+/** Build a standard JSON error response for an expected domain failure. */
+export function domainError(status: number, code: string): NextResponse {
+  return NextResponse.json({ error: { code }, correlationId: correlationId() }, { status });
+}
+
 /** Parse JSON without allowing a malformed body to escape a route handler. */
 export async function readJson(request: Request): Promise<Record<string, unknown> | null> {
   try {

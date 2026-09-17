@@ -23,6 +23,21 @@ export interface MovieTheatreMapping {
   theatreId: string;
 }
 
+/** Represent the only accepted dummy payment method. */
+export type PaymentMethod = 'CARD' | 'UPI';
+
+/** Represent an authoritative persisted booking confirmation. */
+export interface BookingConfirmation {
+  confirmationId: string;
+  ticket: {
+    movie: string;
+    theatre: string;
+    seats: ['A1', 'A2', 'A3'];
+    paymentMethod: PaymentMethod;
+    totalPricePaise: 45000;
+  };
+}
+
 /** Represent a typed API response for successful authentication. */
 interface ApiResponse<T> {
   data: T;
@@ -76,5 +91,17 @@ export async function getTheatres(token: string): Promise<{ theatres: Theatre[];
   const response = await fetch(`${baseUrl}/api/theatres`, { headers: { authorization: `Bearer ${token}` } });
   if (!response.ok) throw new Error(await errorMessage(response));
   const payload = await response.json() as ApiResponse<{ theatres: Theatre[]; movieTheatreMappings: MovieTheatreMapping[] }>;
+  return payload.data;
+}
+
+/** Create a booking using only authoritative journey identifiers and payment method. */
+export async function createBooking(token: string, request: { movieId: string; theatreId: string; seats: string[]; paymentMethod: PaymentMethod }): Promise<BookingConfirmation> {
+  const response = await fetch(`${baseUrl}/api/bookings`, {
+    method: 'POST',
+    headers: { authorization: `Bearer ${token}`, 'content-type': 'application/json' },
+    body: JSON.stringify(request),
+  });
+  if (!response.ok) throw new Error(await errorMessage(response));
+  const payload = await response.json() as ApiResponse<BookingConfirmation>;
   return payload.data;
 }
