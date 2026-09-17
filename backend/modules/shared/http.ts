@@ -15,6 +15,11 @@ export function otpVerificationFailed(): NextResponse {
   return NextResponse.json({ error: { code: 'OTP_VERIFICATION_FAILED' }, correlationId: correlationId() }, { status: 401 });
 }
 
+/** Build the standard response for missing, malformed, or invalid bearer credentials. */
+export function unauthenticated(): NextResponse {
+  return NextResponse.json({ error: { code: 'UNAUTHENTICATED' }, correlationId: correlationId() }, { status: 401 });
+}
+
 /** Parse JSON without allowing a malformed body to escape a route handler. */
 export async function readJson(request: Request): Promise<Record<string, unknown> | null> {
   try {

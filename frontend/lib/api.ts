@@ -5,6 +5,24 @@ export interface AuthUser {
   createdAt: string;
 }
 
+/** Represent a movie returned by the authenticated catalog API. */
+export interface Movie {
+  id: string;
+  title: string;
+}
+
+/** Represent a theatre returned by the authenticated catalog API. */
+export interface Theatre {
+  id: string;
+  name: string;
+}
+
+/** Represent a backend-declared movie and theatre availability relationship. */
+export interface MovieTheatreMapping {
+  movieId: string;
+  theatreId: string;
+}
+
 /** Represent a typed API response for successful authentication. */
 interface ApiResponse<T> {
   data: T;
@@ -42,5 +60,21 @@ export async function verifyOtp(mobileNumber: string, otp: string): Promise<{ to
   });
   if (!response.ok) throw new Error(await errorMessage(response));
   const payload = await response.json() as ApiResponse<{ token: string; user: AuthUser }>;
+  return payload.data;
+}
+
+/** Fetch movies using the session token issued by the backend. */
+export async function getMovies(token: string): Promise<Movie[]> {
+  const response = await fetch(`${baseUrl}/api/movies`, { headers: { authorization: `Bearer ${token}` } });
+  if (!response.ok) throw new Error(await errorMessage(response));
+  const payload = await response.json() as ApiResponse<{ movies: Movie[] }>;
+  return payload.data.movies;
+}
+
+/** Fetch theatres and their explicit movie availability mappings using the session token. */
+export async function getTheatres(token: string): Promise<{ theatres: Theatre[]; movieTheatreMappings: MovieTheatreMapping[] }> {
+  const response = await fetch(`${baseUrl}/api/theatres`, { headers: { authorization: `Bearer ${token}` } });
+  if (!response.ok) throw new Error(await errorMessage(response));
+  const payload = await response.json() as ApiResponse<{ theatres: Theatre[]; movieTheatreMappings: MovieTheatreMapping[] }>;
   return payload.data;
 }

@@ -1,5 +1,6 @@
 import Database from 'better-sqlite3';
 import { USER_SCHEMA } from './schema';
+import { ensureSeeded } from './seed';
 
 let database: Database.Database | undefined;
 let activeUrl: string | undefined;
@@ -11,7 +12,9 @@ export function getDatabase(): Database.Database {
     database?.close();
     database = new Database(databaseUrl);
     database.pragma('journal_mode = DELETE');
+    database.pragma('foreign_keys = ON');
     database.exec(USER_SCHEMA);
+    ensureSeeded(database);
     activeUrl = databaseUrl;
   }
   return database;
