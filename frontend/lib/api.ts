@@ -105,3 +105,13 @@ export async function createBooking(token: string, request: { movieId: string; t
   const payload = await response.json() as ApiResponse<BookingConfirmation>;
   return payload.data;
 }
+
+/** Retrieve one authoritative persisted booking confirmation for the current session user. */
+export async function getBookingConfirmation(token: string, confirmationId: string): Promise<BookingConfirmation> {
+  const response = await fetch(`${baseUrl}/api/bookings/${encodeURIComponent(confirmationId)}`, {
+    headers: { authorization: `Bearer ${token}` },
+  });
+  if (!response.ok) throw new Error(await errorMessage(response));
+  const payload = await response.json() as ApiResponse<BookingConfirmation>;
+  return payload.data;
+}

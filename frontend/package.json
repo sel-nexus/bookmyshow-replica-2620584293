@@ -6,7 +6,7 @@
     "dev": "next dev -p 3000",
     "build": "next build",
     "start": "next start -p 3000",
-    "test": "node node_modules/vitest/vitest.mjs run",
+    "test": "node node_modules/vitest/vitest.mjs run --exclude e2e/**/*.spec.ts",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {

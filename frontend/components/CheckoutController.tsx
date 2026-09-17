@@ -39,8 +39,7 @@ export function CheckoutController() {
       createBooking(token, { movieId: selectedMovie.id, theatreId: selectedTheatre.id, seats, paymentMethod })
         .then((confirmation) => {
           setConfirmation(confirmation);
-          clearJourney();
-          router.push('/confirmation');
+          router.push(`/confirmation?id=${encodeURIComponent(confirmation.confirmationId)}`);
         })
         .catch((reason: unknown) => {
           setError(reason instanceof Error ? reason.message : 'We could not create your booking. Please try again.');
@@ -50,17 +49,87 @@ export function CheckoutController() {
   }
 
   if (!isReady) return null;
-  return <section className="checkout-panel" aria-labelledby="checkout-heading">
-    <p className="eyebrow">DEMO CHECKOUT</p><h1 id="checkout-heading">Choose how to pay</h1>
-    <p className="mobile-summary">Payment details are only a visual demo and are never sent or stored.</p>
-    <div className="payment-methods" role="group" aria-label="Payment method">
-      <button type="button" className={paymentMethod === 'CARD' ? 'payment-choice active' : 'payment-choice'} onClick={() => selectMethod('CARD')} disabled={isProcessing}>Card</button>
-      <button type="button" className={paymentMethod === 'UPI' ? 'payment-choice active' : 'payment-choice'} onClick={() => selectMethod('UPI')} disabled={isProcessing}>UPI</button>
-    </div>
-    {paymentMethod === 'CARD' && <div className="payment-fields"><label htmlFor="card-number">Card Number</label><input id="card-number" name="card-number" inputMode="numeric" autoComplete="cc-number" /><div className="payment-field-row"><div><label htmlFor="expiry-date">Expiry Date</label><input id="expiry-date" name="expiry-date" autoComplete="cc-exp" /></div><div><label htmlFor="cvv">CVV</label><input id="cvv" name="cvv" inputMode="numeric" autoComplete="cc-csc" /></div></div></div>}
-    {paymentMethod === 'UPI' && <div className="payment-fields"><label htmlFor="upi-id">UPI ID</label><input id="upi-id" name="upi-id" placeholder="user@upi" autoComplete="off" /></div>}
-    {error && <p id="checkout-error" className="form-error" role="alert">{error}</p>}
-    {isProcessing && <p role="status" aria-live="polite" className="processing-status">Processing Payment...</p>}
-    <button type="button" onClick={pay} disabled={isProcessing} aria-describedby={error ? 'checkout-error' : undefined}>{isProcessing ? 'Processing Payment...' : 'Pay ₹450.00'}</button>
-  </section>;
+
+  return (
+    <section className="checkout-panel" aria-labelledby="checkout-heading">
+      <p className="eyebrow">DEMO CHECKOUT</p>
+      <h1 id="checkout-heading">Choose how to pay</h1>
+      <p className="mobile-summary">
+        Payment details are only a visual demo and are never sent or stored.
+      </p>
+      <div className="payment-methods" role="group" aria-label="Payment method">
+        <button
+          type="button"
+          className={paymentMethod === 'CARD' ? 'payment-choice active' : 'payment-choice'}
+          onClick={() => selectMethod('CARD')}
+          disabled={isProcessing}
+        >
+          Card
+        </button>
+        <button
+          type="button"
+          className={paymentMethod === 'UPI' ? 'payment-choice active' : 'payment-choice'}
+          onClick={() => selectMethod('UPI')}
+          disabled={isProcessing}
+        >
+          UPI
+        </button>
+      </div>
+      {paymentMethod === 'CARD' ? (
+        <div className="payment-fields">
+          <label htmlFor="card-number">Card Number</label>
+          <input
+            id="card-number"
+            name="card-number"
+            inputMode="numeric"
+            autoComplete="cc-number"
+          />
+          <div className="payment-field-row">
+            <div>
+              <label htmlFor="expiry-date">Expiry Date</label>
+              <input id="expiry-date" name="expiry-date" autoComplete="cc-exp" />
+            </div>
+            <div>
+              <label htmlFor="cvv">CVV</label>
+              <input
+                id="cvv"
+                name="cvv"
+                inputMode="numeric"
+                autoComplete="cc-csc"
+              />
+            </div>
+          </div>
+        </div>
+      ) : null}
+      {paymentMethod === 'UPI' ? (
+        <div className="payment-fields">
+          <label htmlFor="upi-id">UPI ID</label>
+          <input
+            id="upi-id"
+            name="upi-id"
+            placeholder="user@upi"
+            autoComplete="off"
+          />
+        </div>
+      ) : null}
+      {error ? (
+        <p id="checkout-error" className="form-error" role="alert">
+          {error}
+        </p>
+      ) : null}
+      {isProcessing ? (
+        <p role="status" aria-live="polite" className="processing-status">
+          Processing Payment...
+        </p>
+      ) : null}
+      <button
+        type="button"
+        onClick={pay}
+        disabled={isProcessing}
+        aria-describedby={error ? 'checkout-error' : undefined}
+      >
+        {isProcessing ? 'Processing Payment...' : 'Pay ₹450.00'}
+      </button>
+    </section>
+  );
 }

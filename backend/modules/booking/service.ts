@@ -1,4 +1,4 @@
-import { insertBooking, type PersistedBooking } from '../../repositories/booking-repository';
+import { findOwnedBookingByConfirmationId, insertBooking, type PersistedBooking } from '../../repositories/booking-repository';
 
 /** Represent the only accepted booking request shape. */
 export interface CreateBookingRequest {
@@ -48,6 +48,12 @@ export function createBooking(userId: string, request: CreateBookingRequest): Bo
   if (result.kind === 'missing-reference') throw new BookingError('MOVIE_OR_THEATRE_NOT_FOUND');
   if (result.kind === 'unavailable-theatre') throw new BookingError('THEATRE_NOT_AVAILABLE_FOR_MOVIE');
   return toConfirmation(result.booking);
+}
+
+/** Retrieve an authoritative confirmation only when it belongs to the requesting user. */
+export function getBookingConfirmation(userId: string, confirmationId: string): BookingConfirmation | undefined {
+  const booking = findOwnedBookingByConfirmationId(userId, confirmationId);
+  return booking ? toConfirmation(booking) : undefined;
 }
 
 /** Project a committed database record into the public confirmation contract. */

@@ -66,6 +66,35 @@ export function insertBooking(booking: NewBooking): BookingWriteResult {
   return write(booking);
 }
 
+/** Retrieve a persisted ticket only when its confirmation belongs to the authenticated user. */
+export function findOwnedBookingByConfirmationId(userId: string, confirmationId: string): PersistedBooking | undefined {
+  const database: Database.Database = getDatabase();
+  const row = database.prepare(`
+    SELECT bookings.confirmation_id, movies.title AS movie, theatres.name AS theatre,
+      bookings.seats_json, bookings.payment_method, bookings.total_price_paise
+    FROM bookings
+    JOIN movies ON movies.id = bookings.movie_id
+    JOIN theatres ON theatres.id = bookings.theatre_id
+    WHERE bookings.user_id = ? AND bookings.confirmation_id = ?
+  `).get(userId, confirmationId) as {
+    confirmation_id: string;
+    movie: string;
+    theatre: string;
+    seats_json: string;
+    payment_method: 'CARD' | 'UPI';
+    total_price_paise: 45000;
+  } | undefined;
+  if (!row) return undefined;
+  return {
+    confirmationId: row.confirmation_id,
+    movie: row.movie,
+    theatre: row.theatre,
+    seats: JSON.parse(row.seats_json) as ['A1', 'A2', 'A3'],
+    paymentMethod: row.payment_method,
+    totalPricePaise: row.total_price_paise,
+  };
+}
+
 /** Read a booking row for persistence-focused tests and operational verification. */
 export function findBookingByConfirmationId(confirmation: string): Record<string, unknown> | undefined {
   const database: Database.Database = getDatabase();

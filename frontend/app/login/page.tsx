@@ -27,13 +27,35 @@ export default function LoginPage() {
     }
   }
 
-  return <AuthShell title="Sign in with your mobile">
-    <form onSubmit={handleSubmit} noValidate>
-      <label htmlFor="mobileNumber">Mobile number</label>
-      <input id="mobileNumber" name="mobileNumber" type="tel" autoComplete="tel" inputMode="tel" placeholder="+1 555 123 4567" value={mobileNumber} onChange={(event) => setMobileNumber(event.target.value)} aria-required="true" aria-invalid={Boolean(error)} aria-describedby={error ? 'login-error' : undefined} />
-      {error && <p id="login-error" role="alert" className="form-error">{error}</p>}
-      <button type="submit" disabled={submitting}>{submitting ? 'Requesting code…' : 'Continue'}</button>
-      <p className="form-note" aria-live="polite">We will take you to a secure code check.</p>
-    </form>
-  </AuthShell>;
+  return (
+    <AuthShell title="Sign in with your mobile">
+      <form onSubmit={handleSubmit} noValidate>
+        <label htmlFor="mobileNumber">Mobile number</label>
+        <input
+          id="mobileNumber"
+          name="mobileNumber"
+          type="tel"
+          autoComplete="tel"
+          inputMode="tel"
+          placeholder="+1 555 123 4567"
+          value={mobileNumber}
+          onChange={(event) => setMobileNumber(event.target.value)}
+          aria-required="true"
+          aria-invalid={Boolean(error)}
+          aria-describedby={error ? 'login-error' : undefined}
+        />
+        {error && (
+          <p id="login-error" role="alert" className="form-error">
+            {error}
+          </p>
+        )}
+        <button type="submit" disabled={submitting}>
+          {submitting ? 'Requesting code…' : 'Continue'}
+        </button>
+        <p className="form-note" aria-live="polite">
+          We will take you to a secure code check.
+        </p>
+      </form>
+    </AuthShell>
+  );
 }

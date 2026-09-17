@@ -20,7 +20,20 @@ beforeEach(() => {
 
 /** Create a JSON request matching the public API boundary. */
 function request(body: unknown): Request {
-  return new Request('http://test.local/api/auth', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) });
+  return new Request('http://test.local/api/auth', {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify(body),
+  });
+}
+
+/** Build deliberately malformed JSON requests at the route boundary. */
+function malformedRequest(): Request {
+  return new Request('http://test.local/api/auth', {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: '{',
+  });
 }
 
 afterEach(() => {
@@ -29,14 +42,32 @@ afterEach(() => {
 });
 
 describe('identity API', () => {
-  it('starts OTP login and rejects malformed mobile numbers', async () => {
+  it('starts OTP login and rejects missing, wrongly typed, and malformed mobile numbers', async () => {
     const accepted = await login(request({ mobileNumber: '+15551234567' }));
     expect(accepted.status).toBe(200);
     expect(await accepted.json()).toMatchObject({ data: { nextStep: 'OTP' }, correlationId: expect.any(String) });
 
-    const rejected = await login(request({ mobileNumber: 'not-a-number' }));
-    expect(rejected.status).toBe(400);
-    expect(await rejected.json()).toMatchObject({ error: { code: 'INVALID_REQUEST' } });
+    for (const body of [{}, { mobileNumber: 15551234567 }, { mobileNumber: 'not-a-number' }]) {
+      const rejected = await login(request(body));
+      expect(rejected.status).toBe(400);
+      expect(await rejected.json()).toMatchObject({ error: { code: 'INVALID_REQUEST' } });
+    }
+    expect(getDatabase().prepare('SELECT COUNT(*) AS count FROM users').get()).toEqual({ count: 0 });
+  });
+
+  it('rejects malformed JSON and each missing, invalid, or wrongly typed identity field without creating users', async () => {
+    for (const route of [login, verify]) {
+      const malformed = await route(malformedRequest());
+      expect(malformed.status).toBe(400);
+      expect(await malformed.json()).toMatchObject({ error: { code: 'INVALID_REQUEST' } });
+    }
+
+    for (const body of [{}, { mobileNumber: '' }, { mobileNumber: 15551234567 }, { mobileNumber: '+15551234567', otp: 1234 }, { otp: '1234' }]) {
+      const response = await verify(request(body));
+      expect(response.status).toBe(400);
+      expect(await response.json()).toMatchObject({ error: { code: 'INVALID_REQUEST' } });
+    }
+    expect(getDatabase().prepare('SELECT COUNT(*) AS count FROM users').get()).toEqual({ count: 0 });
   });
 
   it('issues a signed token and reuses the SQLite user for the valid OTP', async () => {
@@ -61,7 +92,9 @@ describe('identity API', () => {
 
     const malformed = await verify(request({ mobileNumber: '+15551234567' }));
     expect(malformed.status).toBe(400);
+    expect(getDatabase().prepare('SELECT COUNT(*) AS count FROM users').get()).toEqual({ count: 0 });
     const healthy = await health();
     expect(healthy.status).toBe(200);
+    expect(await healthy.json()).toEqual({ data: { status: 'ok' } });
   });
 });

@@ -4,7 +4,7 @@ import React from 'react';
 import { cleanup, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { SessionProvider } from '../providers/SessionProvider';
+import { SessionProvider, useSession } from '../providers/SessionProvider';
 import LoginPage from '../app/login/page';
 import OtpPage from '../app/otp/page';
 
@@ -16,14 +16,30 @@ vi.mock('next/navigation', () => ({
   useSearchParams: () => query,
 }));
 
-afterEach(() => { cleanup(); vi.restoreAllMocks(); push.mockReset(); query = new URLSearchParams('mobile=%2B15551234567'); });
+afterEach(() => { cleanup(); window.sessionStorage.clear(); vi.restoreAllMocks(); push.mockReset(); query = new URLSearchParams('mobile=%2B15551234567'); });
 
 /** Render a client page with the session context it expects. */
 function renderWithSession(element: React.ReactNode): void {
   render(<SessionProvider>{element}</SessionProvider>);
 }
 
+/** Expose rehydrated session state for the provider's browser-storage contract test. */
+function SessionSnapshot() {
+  const { isHydrated, token, user } = useSession();
+  return <p>{isHydrated ? `${token}:${user?.mobileNumber}` : 'hydrating'}</p>;
+}
+
 describe('identity user interface', () => {
+  it('rehydrates a browser-tab session from sessionStorage', async () => {
+    window.sessionStorage.setItem('identity-demo-session', JSON.stringify({
+      token: 'stored-token',
+      user: { id: 'u-1', mobileNumber: '+15551234567', createdAt: '2026-01-01T00:00:00.000Z' },
+    }));
+    renderWithSession(<SessionSnapshot />);
+
+    expect(await screen.findByText('stored-token:+15551234567')).toBeInTheDocument();
+  });
+
   it('requests an OTP then navigates with the mobile number', async () => {
     const user = userEvent.setup();
     vi.spyOn(global, 'fetch').mockResolvedValue(new Response(JSON.stringify({ data: { nextStep: 'OTP' }, correlationId: 'c-1' }), { status: 200 }));

@@ -1,13 +1,13 @@
 'use client';
 
-import React, { useState, type FormEvent } from 'react';
+import { Suspense, useState, type FormEvent } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { AuthShell } from '../../components/AuthShell';
 import { verifyOtp } from '../../lib/api';
 import { useSession } from '../../providers/SessionProvider';
 
 /** Verify a one-time code and establish the in-memory session. */
-export default function OtpPage() {
+function OtpPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { establishSession } = useSession();
@@ -43,4 +43,12 @@ export default function OtpPage() {
       <p className="form-note" aria-live="polite">For this development flow, use code 1234.</p>
     </form>
   </AuthShell>;
+}
+
+export default function OtpPage() {
+  return (
+    <Suspense fallback={<main className="discovery-shell"><p role="status" aria-live="polite">Loading verification…</p></main>}>
+      <OtpPageContent />
+    </Suspense>
+  );
 }

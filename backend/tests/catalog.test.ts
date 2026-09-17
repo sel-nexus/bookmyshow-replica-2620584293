@@ -46,12 +46,17 @@ describe('catalog discovery API', () => {
     ]);
   });
 
-  it('keeps seed calls idempotent without duplicating mappings', () => {
+  it('keeps seed calls idempotent and enforces SQLite unique, foreign-key, and NOT NULL catalog constraints', () => {
     const database = getDatabase();
     ensureSeeded(database);
     ensureSeeded(database);
     expect(database.prepare('SELECT COUNT(*) AS count FROM movies').get()).toEqual({ count: 3 });
     expect(database.prepare('SELECT COUNT(*) AS count FROM theatres').get()).toEqual({ count: 3 });
+    expect(database.prepare('SELECT COUNT(*) AS count FROM movie_theatres').get()).toEqual({ count: 3 });
+    expect(() => database.prepare("INSERT INTO movies (id, title) VALUES ('mov_duplicate', 'Paradise')").run()).toThrow(/UNIQUE/);
+    expect(() => database.prepare("INSERT INTO movie_theatres (movie_id, theatre_id) VALUES ('missing', 'thr_sandhya')").run()).toThrow(/FOREIGN KEY/);
+    expect(() => database.prepare('INSERT INTO theatres (id, name) VALUES (?, ?)').run('thr_null', null)).toThrow(/NOT NULL/);
+    expect(database.prepare('SELECT COUNT(*) AS count FROM movies').get()).toEqual({ count: 3 });
     expect(database.prepare('SELECT COUNT(*) AS count FROM movie_theatres').get()).toEqual({ count: 3 });
   });
 

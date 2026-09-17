@@ -5,6 +5,7 @@ import { join } from 'node:path';
 import { getDatabase, resetDatabase } from '../db/database';
 import { POST as verify } from '../app/api/auth/verify/route';
 import { GET as movies } from '../app/api/movies/route';
+import { GET as theatres } from '../app/api/theatres/route';
 import { POST as booking } from '../app/api/bookings/route';
 
 let testDirectory = '';
@@ -35,6 +36,10 @@ describe('authenticated booking journey integration', () => {
     expect(catalog.status).toBe(200);
     expect((await catalog.json()).data.movies).toContainEqual({ id: 'mov_paradise', title: 'Paradise' });
 
+    const theatreCatalog = await theatres(request('http://test.local/api/theatres', undefined, session.data.token));
+    expect(theatreCatalog.status).toBe(200);
+    expect((await theatreCatalog.json()).data.movieTheatreMappings).toContainEqual({ movieId: 'mov_paradise', theatreId: 'thr_sandhya' });
+
     const created = await booking(request('http://test.local/api/bookings', { movieId: 'mov_paradise', theatreId: 'thr_sandhya', seats: ['A1', 'A2', 'A3'], paymentMethod: 'UPI' }, session.data.token));
     const confirmation = await created.json();
     expect(created.status).toBe(201);
@@ -46,6 +51,7 @@ describe('authenticated booking journey integration', () => {
     const verified = await verify(request('http://test.local/api/auth/verify', { mobileNumber: '+15551234567', otp: '1234' }));
     const session = await verified.json();
     expect((await movies(request('http://test.local/api/movies', undefined, session.data.token)).then((response) => response.status)).valueOf()).toBe(200);
+    expect((await theatres(request('http://test.local/api/theatres', undefined, session.data.token)).then((response) => response.status)).valueOf()).toBe(200);
     const rejected = await booking(request('http://test.local/api/bookings', { movieId: 'mov_paradise', theatreId: 'thr_allu', seats: ['A1', 'A2', 'A3'], paymentMethod: 'UPI' }, session.data.token));
     expect(rejected.status).toBe(409);
     expect(await rejected.json()).toMatchObject({ error: { code: 'THEATRE_NOT_AVAILABLE_FOR_MOVIE' } });
